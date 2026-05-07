@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Updated Full Workflow Test</title>
+  <link rel="stylesheet" href="/styles/test-pages.css" />
+</head>
+<body>
+  <div class="container wide">
+    <div class="page-header">
+      <div>
+        <h1>Updated Full Workflow Test</h1>
+        <p class="subtitle">Tests membership, enhanced candidate profiles, job posting, unlimited/top-10 recommendations, filters, keyword search and fuzzy search.</p>
+      </div>
+      <a class="nav-link" href="/index.html">All Test Pages</a>
+    </div>
+
+    <section class="card">
+      <div class="section-header">
+        <h2>Step 1: Register / Login</h2>
+        <button id="logoutBtn" type="button" class="secondary-btn">Logout</button>
+      </div>
+      <div class="grid two-col">
+        <form id="registerForm">
+          <h3>Register</h3>
+          <input type="email" name="email" placeholder="Email" required />
+          <input type="password" name="password" placeholder="Password" required />
+          <select name="role" required>
+            <option value="">Choose account type</option>
+            <option value="candidate">Candidate</option>
+            <option value="employer">Employer / Company</option>
+          </select>
+          <select name="isMember" required>
+            <option value="false">Non-membership account (Top 10 recommendations)</option>
+            <option value="true">Membership account (Unlimited recommendations)</option>
+          </select>
+          <button type="submit">Register</button>
+        </form>
+
+        <form id="loginForm">
+          <h3>Login</h3>
+          <input type="email" name="email" placeholder="Email" required />
+          <input type="password" name="password" placeholder="Password" required />
+          <button type="submit">Login</button>
+        </form>
+      </div>
+      <div id="sessionStatus" class="status">Not logged in.</div>
+      <pre id="authOutput">Waiting...</pre>
+    </section>
+
+    <section id="candidateSection" class="card hidden">
+      <h2>Step 2A: Candidate Enhanced Profile</h2>
+      <form id="candidateForm">
+        <input type="text" name="fullName" placeholder="Full name" required />
+        <input type="text" name="contactInformation" placeholder="Contact information" required />
+        <input type="text" name="education" placeholder="Education" required />
+        <input type="text" name="major" placeholder="Major / field of study" required />
+        <input type="number" name="yearsOfExperience" placeholder="Years of experience" required />
+        <textarea name="workExperience" placeholder="Work experience summary" rows="4" required></textarea>
+        <input type="text" name="skills" placeholder="Skills (comma separated)" required />
+        <select name="preferredWorkingMode" required>
+          <option value="">Preferred working mode</option>
+          <option value="Remote">Remote</option>
+          <option value="On-site">On-site</option>
+          <option value="Hybrid">Hybrid</option>
+        </select>
+        <input type="text" name="preferredLocation" placeholder="Preferred location" required />
+        <input type="text" name="preferences" placeholder="Extra preferences (comma separated)" />
+        <label>Resume</label>
+        <input type="file" name="resume" />
+        <label>Cover letter</label>
+        <input type="file" name="coverLetter" />
+        <label>Profile image</label>
+        <input type="file" name="profileImage" accept="image/*" />
+        <button type="submit">Submit Candidate Profile</button>
+      </form>
+      <div class="section-header top-gap">
+        <h3>Your Candidate Profile</h3>
+        <button id="loadCandidateProfileBtn" type="button" class="secondary-btn">Reload Profile</button>
+      </div>
+      <pre id="candidateOutput">No candidate profile loaded.</pre>
+    </section>
+
+    <section id="employerSection" class="card hidden">
+      <h2>Step 2B: Employer Job Upload</h2>
+      <form id="jobForm">
+        <input type="text" name="jobTitle" placeholder="Job title" required />
+        <input type="text" name="companyInformation" placeholder="Company information" required />
+        <textarea name="jobDescription" placeholder="Job description" rows="5" required></textarea>
+        <input type="text" name="requiredEducationLevel" placeholder="Required education level" required />
+        <input type="text" name="requiredSkills" placeholder="Required skills (comma separated)" required />
+        <input type="number" name="yearsOfExperience" placeholder="Required years of experience" required />
+        <select name="workMode" required>
+          <option value="">Select work mode</option>
+          <option value="Remote">Remote</option>
+          <option value="On-site">On-site</option>
+          <option value="Hybrid">Hybrid</option>
+        </select>
+        <input type="text" name="jobLocation" placeholder="Job location" required />
+        <input type="text" name="jobType" placeholder="Job type e.g. Full-time, Part-time, Entry-level" />
+        <input type="number" name="salaryMin" placeholder="Minimum salary" />
+        <input type="number" name="salaryMax" placeholder="Maximum salary" />
+        <button type="submit">Create Job</button>
+      </form>
+      <div class="section-header top-gap">
+        <h3>Your Uploaded Jobs</h3>
+        <button id="loadEmployerJobsBtn" type="button" class="secondary-btn">Reload My Jobs</button>
+      </div>
+      <pre id="jobOutput">No employer jobs loaded.</pre>
+    </section>
+
+    <section id="searchSection" class="card">
+      <h2>Step 3: Search + Filter + Fuzzy Search</h2>
+      <div class="grid two-col">
+        <form id="jobSearchForm">
+          <h3>Search Jobs</h3>
+          <input type="text" name="q" placeholder="Keyword or typo e.g. sofware enginer / coder" />
+          <input type="text" name="location" placeholder="Location filter e.g. Sydney" />
+          <select name="workMode">
+            <option value="">Any work mode</option>
+            <option value="Remote">Remote</option>
+            <option value="On-site">On-site</option>
+            <option value="Hybrid">Hybrid</option>
+          </select>
+          <input type="text" name="jobType" placeholder="Job type filter e.g. Full-time" />
+          <input type="number" name="minSalary" placeholder="Min salary" />
+          <input type="number" name="maxSalary" placeholder="Max salary" />
+          <button type="submit">Search Jobs</button>
+        </form>
+
+        <form id="candidateSearchForm">
+          <h3>Search Candidates</h3>
+          <input type="text" name="q" placeholder="Keyword or typo e.g. programer / data analst" />
+          <input type="text" name="skill" placeholder="Skill filter e.g. Node.js" />
+          <input type="text" name="education" placeholder="Education filter" />
+          <input type="text" name="preferredLocation" placeholder="Preferred location" />
+          <select name="preferredWorkingMode">
+            <option value="">Any preferred work mode</option>
+            <option value="Remote">Remote</option>
+            <option value="On-site">On-site</option>
+            <option value="Hybrid">Hybrid</option>
+          </select>
+          <input type="number" name="minExperience" placeholder="Minimum experience" />
+          <button type="submit">Search Candidates</button>
+        </form>
+      </div>
+      <pre id="searchOutput">Run a search to test keyword + filters + fuzzy matching.</pre>
+    </section>
+
+    <section id="recommendationsSection" class="card hidden">
+      <div class="section-header">
+        <h2>Step 4: Recommendations</h2>
+        <button id="refreshRecommendationsBtn" type="button" class="secondary-btn">Refresh</button>
+      </div>
+
+      <div id="candidateRecommendationsPanel" class="hidden">
+        <h3>Recommended Jobs For Logged-In Candidate</h3>
+        <p class="subtitle">Membership candidates receive all ranked jobs. Non-membership candidates receive maximum Top 10.</p>
+        <pre id="candidateRecommendationsOutput">No recommendation data loaded.</pre>
+      </div>
+
+      <div id="employerRecommendationsPanel" class="hidden">
+        <h3>Recommended Candidates For One Of Your Jobs</h3>
+        <p class="subtitle">Membership employers receive all ranked candidates. Non-membership employers receive maximum Top 10.</p>
+        <div class="inline-controls">
+          <select id="employerJobSelect">
+            <option value="">Select one of your jobs</option>
+          </select>
+          <button id="loadEmployerRecommendationsBtn" type="button">Load Candidate Recommendations</button>
+        </div>
+        <pre id="employerRecommendationsOutput">No recommendation data loaded.</pre>
+      </div>
+    </section>
+  </div>
+
+  <script src="/js/workflow-test.js"></script>
+</body>
+</html>

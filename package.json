@@ -1,0 +1,27 @@
+{
+  "name": "intelligent-talent-matching-backend",
+  "version": "1.0.0",
+  "description": "Backend server for the CSIT314 Intelligent Talent Matching Platform group project",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js"
+  },
+  "keywords": [
+    "express",
+    "recruitment",
+    "talent-matching",
+    "csit314"
+  ],
+  "author": "CSIT314 Group - Mogged",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}

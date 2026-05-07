@@ -1,0 +1,68 @@
+[
+  {
+    "id": "user_1777879299680_9528",
+    "email": "newnew2@gmail.com",
+    "role": "employer",
+    "passwordSalt": "4783d7d597b263d0433134cec252be86",
+    "passwordHash": "680dd311fe821149f8f2c146d6bdc141ef3a4e818224fc0c79746adfb121eb5ce185756acea634305cd3c1dfac54b8277da6bb237ca7b4642a9735337b1eda3e",
+    "isMember": true,
+    "membershipType": "membership",
+    "createdAt": "2026-05-04T07:21:39.680Z",
+    "updatedAt": "2026-05-04T07:21:39.680Z"
+  },
+  {
+    "id": "user_1776308514665_725",
+    "email": "test2@gmail.com",
+    "role": "employer",
+    "passwordSalt": "7e367f6dfa9199544d6a249508bb308f",
+    "passwordHash": "4d3f6f08a36c547dc1da79394ec0a3e3bbef910aa79d16a44534cda27a77c945c741c168e83ee0fb918b1ad031ef8ebf62e6eed98234714f085476a5c045f5ca",
+    "createdAt": "2026-04-16T03:01:54.665Z",
+    "updatedAt": "2026-04-16T03:01:54.665Z",
+    "isMember": false,
+    "membershipType": "non-membership"
+  },
+  {
+    "id": "user_1775899314582_4627",
+    "email": "helloqueen@gmail.com",
+    "role": "candidate",
+    "passwordSalt": "7815dbc5c6e2cb4cf66e354b8d6b5c30",
+    "passwordHash": "35341eec1664f7526f3d5fe4e3c97252f58e14ff5adffdd88d1058cf74a1aeb723d63ab072407740e4923eab44d3d51b1666eca3d32cace72db7e5a8fad16287",
+    "createdAt": "2026-04-11T09:21:54.582Z",
+    "updatedAt": "2026-04-11T09:21:54.582Z",
+    "isMember": false,
+    "membershipType": "non-membership"
+  },
+  {
+    "id": "user_1775899228174_7418",
+    "email": "abdullatif36e@gmail.com",
+    "role": "employer",
+    "passwordSalt": "f49f7a5b47d62ecccd3f6931e8b75b96",
+    "passwordHash": "40b0d50f570379f583b2449076e68bd3e3be887c64a7a7ea1e11922f05fc5d5f328216c3747f195dbc99468da981aae7726164b7a74dafd86e2c8eae6a8c97c0",
+    "createdAt": "2026-04-11T09:20:28.174Z",
+    "updatedAt": "2026-04-16T03:27:35.230Z",
+    "isMember": false,
+    "membershipType": "non-membership"
+  },
+  {
+    "id": "user_1775875215156_8463",
+    "email": "emp1@test.com",
+    "role": "employer",
+    "passwordSalt": "b099531717aed36260cbdf60dc216fb4",
+    "passwordHash": "9a0501becfa4a0737a20c1feb1cc723de556a801e2aed0058b450a4ac2729aae70250fa52abf2fd0c34fd56d6e864c4a0b475e1d07661eeb039ce4ba7559f25c",
+    "createdAt": "2026-04-11T02:40:15.156Z",
+    "updatedAt": "2026-04-11T02:40:15.156Z",
+    "isMember": false,
+    "membershipType": "non-membership"
+  },
+  {
+    "id": "user_1775875215057_8935",
+    "email": "cand1@test.com",
+    "role": "candidate",
+    "passwordSalt": "96c22d44875742a5988afacd2d456b19",
+    "passwordHash": "7e0fadbf1faea941b9b86c3d5a4351110d7c295cdde95de51a1b09f7e5df603fea4704352e6ca859b6a3048c3eba4f565ef42b11a5e19807d71eef07a80fb5d0",
+    "createdAt": "2026-04-11T02:40:15.057Z",
+    "updatedAt": "2026-04-11T02:40:15.057Z",
+    "isMember": false,
+    "membershipType": "non-membership"
+  }
+]
