@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employer API Test</title>
+  <link rel="stylesheet" href="/styles/test-pages.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="page-header">
+      <div>
+        <h1>Employer / Job Testing Page</h1>
+        <p class="subtitle">Manual employer job test page. Use an employer userId from auth first.</p>
+      </div>
+      <a class="nav-link" href="/index.html">All Test Pages</a>
+    </div>
+
+    <div class="card">
+      <h2>Create Job Post</h2>
+      <form id="jobForm">
+        <input type="text" name="userId" placeholder="Employer userId" required />
+        <input type="text" name="jobTitle" placeholder="Job title" required />
+        <input type="text" name="companyInformation" placeholder="Company information" required />
+        <textarea name="jobDescription" placeholder="Job description" rows="5" required></textarea>
+        <input type="text" name="requiredEducationLevel" placeholder="Required education level" required />
+        <input type="text" name="requiredSkills" placeholder="Required skills (comma separated)" required />
+        <input type="number" name="yearsOfExperience" placeholder="Years of experience" required />
+        <select name="workMode" required>
+          <option value="">Select work mode</option>
+          <option value="Remote">Remote</option>
+          <option value="On-site">On-site</option>
+          <option value="Hybrid">Hybrid</option>
+        </select>
+        <input type="text" name="jobLocation" placeholder="Job location" required />
+        <input type="text" name="jobType" placeholder="Job type e.g. Full-time" />
+        <input type="number" name="salaryMin" placeholder="Minimum salary" />
+        <input type="number" name="salaryMax" placeholder="Maximum salary" />
+        <button type="submit">Create Job</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>All Jobs</h2>
+      <button id="loadJobs">Load Jobs</button>
+      <pre id="jobOutput">Waiting...</pre>
+    </div>
+  </div>
+
+  <script src="/js/employer-test.js"></script>
+</body>
+</html>

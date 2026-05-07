@@ -1,0 +1,172 @@
+[
+  {
+    "id": "cand_1775899392134_3778",
+    "userId": "user_1775899314582_4627",
+    "userEmail": "helloqueen@gmail.com",
+    "fullName": "ABDUL LATIF",
+    "contactInformation": "a",
+    "education": "Bachelor Degree",
+    "major": "cyber",
+    "yearsOfExperience": 2,
+    "skills": [
+      "Node.js",
+      "Express",
+      "SQL",
+      "REST API"
+    ],
+    "preferences": [
+      "Backend",
+      "Remote"
+    ],
+    "resumeFileName": "Week 3 task.pdf",
+    "resumePath": "/uploads/1775899392128-736641025.pdf",
+    "coverLetterFileName": "Progress Report Marking Rubric.pdf",
+    "coverLetterPath": "/uploads/1775899392128-366971921.pdf",
+    "profileImageFileName": "images (5).jpeg",
+    "profileImagePath": "/uploads/1775899392130-573789889.jpeg",
+    "createdAt": "2026-04-11T09:23:12.133Z",
+    "updatedAt": "2026-04-11T09:23:12.133Z",
+    "workExperience": "Backend, Remote",
+    "preferredWorkingMode": "Remote",
+    "preferredLocation": "Sydney",
+    "isMember": false,
+    "membershipType": "non-membership"
+  },
+  {
+    "id": "cand_1775875215323_7486",
+    "userId": "user_1775875215057_8935",
+    "userEmail": "cand1@test.com",
+    "fullName": "Test Candidate",
+    "contactInformation": "test@x.com",
+    "education": "Bachelor degree",
+    "major": "Software Engineering",
+    "yearsOfExperience": 2,
+    "skills": [
+      "JavaScript",
+      "Node.js"
+    ],
+    "preferences": [
+      "remote",
+      "developer"
+    ],
+    "resumeFileName": null,
+    "resumePath": null,
+    "createdAt": "2026-04-11T02:40:15.323Z",
+    "workExperience": "remote, developer",
+    "preferredWorkingMode": "remote",
+    "preferredLocation": "Sydney",
+    "isMember": false,
+    "membershipType": "non-membership",
+    "updatedAt": "2026-04-11T02:40:15.323Z"
+  },
+  {
+    "id": "cand_1774667875519_9996",
+    "fullName": "Ali Khan",
+    "contactInformation": "050505050",
+    "education": "Bachelor Degree",
+    "major": "Computer Science",
+    "yearsOfExperience": 2,
+    "skills": [
+      "Node.js",
+      "Express",
+      "SQL",
+      "REST API"
+    ],
+    "preferences": [
+      "Backend",
+      "Remote"
+    ],
+    "resumeFileName": null,
+    "resumePath": null,
+    "createdAt": "2026-03-28T03:17:55.519Z",
+    "workExperience": "Backend, Remote",
+    "preferredWorkingMode": "Remote",
+    "preferredLocation": "Sydney",
+    "isMember": false,
+    "membershipType": "non-membership",
+    "updatedAt": "2026-03-28T03:17:55.519Z"
+  },
+  {
+    "id": "cand_1774054048206_1323",
+    "fullName": "Aisha Khan",
+    "contactInformation": "aisha.khan@email.com | +61 400 111 222",
+    "education": "Bachelor of Computer Science",
+    "major": "Software Engineering",
+    "yearsOfExperience": 2,
+    "skills": [
+      "JavaScript",
+      "Node.js",
+      "React",
+      "SQL"
+    ],
+    "preferences": [
+      "remote",
+      "software engineer",
+      "full stack"
+    ],
+    "resumeFileName": null,
+    "resumePath": null,
+    "createdAt": "2026-03-21T00:47:28.206Z",
+    "workExperience": "remote, software engineer, full stack",
+    "preferredWorkingMode": "remote",
+    "preferredLocation": "Sydney",
+    "isMember": false,
+    "membershipType": "non-membership",
+    "updatedAt": "2026-03-21T00:47:28.206Z"
+  },
+  {
+    "id": "cand_1774054048207_4815",
+    "fullName": "Bilal Ahmed",
+    "contactInformation": "bilal.ahmed@email.com | +61 400 222 333",
+    "education": "Master of Data Science",
+    "major": "Data Science",
+    "yearsOfExperience": 3,
+    "skills": [
+      "Python",
+      "Machine Learning",
+      "Pandas",
+      "SQL"
+    ],
+    "preferences": [
+      "hybrid",
+      "data analyst",
+      "machine learning"
+    ],
+    "resumeFileName": null,
+    "resumePath": null,
+    "createdAt": "2026-03-21T00:47:28.207Z",
+    "workExperience": "hybrid, data analyst, machine learning",
+    "preferredWorkingMode": "hybrid",
+    "preferredLocation": "Sydney",
+    "isMember": false,
+    "membershipType": "non-membership",
+    "updatedAt": "2026-03-21T00:47:28.207Z"
+  },
+  {
+    "id": "cand_1774054048207_6800",
+    "fullName": "Sara Noor",
+    "contactInformation": "sara.noor@email.com | +61 400 333 444",
+    "education": "Bachelor of Information Technology",
+    "major": "Cybersecurity",
+    "yearsOfExperience": 1,
+    "skills": [
+      "Networking",
+      "Linux",
+      "Security",
+      "Documentation"
+    ],
+    "preferences": [
+      "on-site",
+      "security analyst"
+    ],
+    "resumeFileName": null,
+    "resumePath": null,
+    "createdAt": "2026-03-21T00:47:28.207Z",
+    "workExperience": "on-site, security analyst",
+    "preferredWorkingMode": "on-site",
+    "preferredLocation": "Sydney",
+    "isMember": false,
+    "membershipType": "non-membership",
+    "updatedAt": "2026-03-21T00:47:28.207Z"
+  }
+]
