@@ -1,0 +1,122 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==================== Unified Input Styles ==================== */
+
+/* All text-like inputs, textareas, selects, and custom class */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="search"],
+textarea,
+select,
+.input-field {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    font-size: 0.95rem;
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius);
+    background-color: white;
+    color: var(--gray-800);
+    transition: border-color var(--transition), box-shadow var(--transition);
+    outline: none;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+/* Focus state – blue glow */
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="search"]:focus,
+textarea:focus,
+select:focus,
+.input-field:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+/* Placeholder styling */
+::placeholder {
+    color: var(--gray-400);
+    opacity: 1;
+}
+
+/* Textarea */
+textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Select (chevron arrow) */
+select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%23475569' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 1.2em;
+    padding-right: 2.5rem;
+}
+
+/* Remove the default number input spinner (optional) */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* ===== Form-specific overrides (keep form layout neat) ===== */
+form input[type="text"],
+form input[type="number"],
+form input[type="email"],
+form textarea,
+form select {
+    margin-bottom: 0.5rem;
+}
+
+.card.clickable {
+    cursor: pointer;
+    transition: background-color var(--transition);
+}
+.card.clickable:hover {
+    background-color: var(--gray-100);
+}
