@@ -1,4 +1,4 @@
-const { getCandidates, saveCandidates, generateId, getUsers } = require('../data/store');
+const store = require('../data/store');
 const { parseArrayField, toNumber } = require('../utils/parseHelpers');
 const { fuzzyIncludes, objectToSearchText } = require('../utils/searchHelpers');
 
@@ -10,7 +10,7 @@ function buildCandidatePayload(req, user, existingCandidate = null) {
   const imageFile = files.profileImage?.[0] || null;
 
   return {
-    id: existingCandidate?.id || generateId('cand'),
+    id: existingCandidate?.id || store.generateId('cand'),
     userId: user.id,
     userEmail: user.email,
     fullName: String(req.body.fullName || existingCandidate?.fullName || '').trim(),
@@ -38,7 +38,7 @@ function buildCandidatePayload(req, user, existingCandidate = null) {
     isMember: Boolean(user.isMember),
     membershipType: user.isMember ? 'membership' : 'non-membership',
     createdAt: existingCandidate?.createdAt || now,
-    updatedAt: now
+    updatedAt: now,
   };
 }
 
@@ -46,32 +46,26 @@ function validateCandidatePayload(candidate) {
   if (!candidate.fullName || !candidate.contactInformation || !candidate.education || !candidate.major) {
     return 'fullName, contactInformation, education, and major are required.';
   }
-
   if (!candidate.workExperience) {
     return 'workExperience is required for the enhanced candidate profile.';
   }
-
   if (!candidate.skills.length) {
     return 'At least one skill is required.';
   }
-
   if (!candidate.preferredWorkingMode || !candidate.preferredLocation) {
     return 'preferredWorkingMode and preferredLocation are required.';
   }
-
   return '';
 }
 
-function createCandidate(req, res) {
-  const candidates = getCandidates();
-  const users = getUsers();
+async function createCandidate(req, res) {
   const userId = String(req.body.userId || '').trim();
 
   if (!userId) {
     return res.status(400).json({ success: false, message: 'userId is required to create a candidate profile.' });
   }
 
-  const user = users.find(item => item.id === userId);
+  const user = await store.findUserById(userId);
   if (!user) {
     return res.status(404).json({ success: false, message: 'User not found.' });
   }
@@ -80,7 +74,7 @@ function createCandidate(req, res) {
     return res.status(403).json({ success: false, message: 'Only candidate accounts can create candidate profiles.' });
   }
 
-  const existingCandidate = candidates.find(candidate => candidate.userId === userId);
+  const existingCandidate = await store.findCandidateByUserId(userId);
   if (existingCandidate) {
     return res.status(409).json({ success: false, message: 'This user already has a candidate profile.', data: existingCandidate });
   }
@@ -91,23 +85,20 @@ function createCandidate(req, res) {
     return res.status(400).json({ success: false, message: validationMessage });
   }
 
-  saveCandidates([newCandidate, ...candidates]);
-  res.status(201).json({ success: true, message: 'Candidate profile created successfully.', data: newCandidate });
+  const created = await store.insertCandidate(newCandidate);
+  res.status(201).json({ success: true, message: 'Candidate profile created successfully.', data: created });
 }
 
-function updateCandidate(req, res) {
-  const candidates = getCandidates();
-  const candidateIndex = candidates.findIndex(item => item.id === req.params.id);
-
-  if (candidateIndex === -1) {
+async function updateCandidate(req, res) {
+  const existingCandidate = await store.findCandidateById(req.params.id);
+  if (!existingCandidate) {
     return res.status(404).json({ success: false, message: 'Candidate not found.' });
   }
 
-  const existingCandidate = candidates[candidateIndex];
-  const user = getUsers().find(item => item.id === existingCandidate.userId) || {
+  const user = (await store.findUserById(existingCandidate.userId)) || {
     id: existingCandidate.userId,
     email: existingCandidate.userEmail,
-    isMember: existingCandidate.isMember
+    isMember: existingCandidate.isMember,
   };
 
   const updatedCandidate = buildCandidatePayload(req, user, existingCandidate);
@@ -116,13 +107,11 @@ function updateCandidate(req, res) {
     return res.status(400).json({ success: false, message: validationMessage });
   }
 
-  candidates[candidateIndex] = updatedCandidate;
-  saveCandidates(candidates);
-
-  res.json({ success: true, message: 'Candidate profile updated successfully.', data: updatedCandidate });
+  const result = await store.updateCandidateById(req.params.id, updatedCandidate);
+  res.json({ success: true, message: 'Candidate profile updated successfully.', data: result });
 }
 
-function getAllCandidates(req, res) {
+async function getAllCandidates(req, res) {
   const {
     q = '',
     search = '',
@@ -132,73 +121,55 @@ function getAllCandidates(req, res) {
     preferredWorkingMode = '',
     preferredLocation = '',
     location = '',
-    userId = ''
+    userId = '',
   } = req.query;
 
   const keyword = q || search;
-  let candidates = getCandidates();
+  let candidates = await store.getCandidates();
 
   if (userId) {
-    candidates = candidates.filter(candidate => String(candidate.userId) === String(userId));
+    candidates = candidates.filter(c => String(c.userId) === String(userId));
   }
-
   if (keyword) {
-    candidates = candidates.filter(candidate => fuzzyIncludes(objectToSearchText(candidate, [
-      'fullName',
-      'contactInformation',
-      'education',
-      'major',
-      'workExperience',
-      'skills',
-      'preferredWorkingMode',
-      'preferredLocation',
-      'preferences',
-      'userEmail'
+    candidates = candidates.filter(c => fuzzyIncludes(objectToSearchText(c, [
+      'fullName', 'contactInformation', 'education', 'major', 'workExperience',
+      'skills', 'preferredWorkingMode', 'preferredLocation', 'preferences', 'userEmail',
     ]), keyword));
   }
-
   if (skill) {
-    candidates = candidates.filter(candidate => fuzzyIncludes((candidate.skills || []).join(' '), skill));
+    candidates = candidates.filter(c => fuzzyIncludes((c.skills || []).join(' '), skill));
   }
-
   if (education) {
-    candidates = candidates.filter(candidate => fuzzyIncludes(candidate.education, education));
+    candidates = candidates.filter(c => fuzzyIncludes(c.education, education));
   }
-
   if (preferredWorkingMode) {
-    candidates = candidates.filter(candidate => fuzzyIncludes(candidate.preferredWorkingMode, preferredWorkingMode));
+    candidates = candidates.filter(c => fuzzyIncludes(c.preferredWorkingMode, preferredWorkingMode));
   }
-
   const locationFilter = preferredLocation || location;
   if (locationFilter) {
-    candidates = candidates.filter(candidate => fuzzyIncludes(candidate.preferredLocation, locationFilter));
+    candidates = candidates.filter(c => fuzzyIncludes(c.preferredLocation, locationFilter));
   }
-
   if (minExperience !== '') {
     const minimum = toNumber(minExperience);
-    candidates = candidates.filter(candidate => candidate.yearsOfExperience >= minimum);
+    candidates = candidates.filter(c => c.yearsOfExperience >= minimum);
   }
 
   res.json({ success: true, count: candidates.length, data: candidates });
 }
 
-function getCandidateById(req, res) {
-  const candidate = getCandidates().find(item => item.id === req.params.id);
-
+async function getCandidateById(req, res) {
+  const candidate = await store.findCandidateById(req.params.id);
   if (!candidate) {
     return res.status(404).json({ success: false, message: 'Candidate not found.' });
   }
-
   res.json({ success: true, data: candidate });
 }
 
-function getCandidateByUserId(req, res) {
-  const candidate = getCandidates().find(item => String(item.userId) === String(req.params.userId));
-
+async function getCandidateByUserId(req, res) {
+  const candidate = await store.findCandidateByUserId(req.params.userId);
   if (!candidate) {
     return res.status(404).json({ success: false, message: 'Candidate profile not found for this user.' });
   }
-
   res.json({ success: true, data: candidate });
 }
 
@@ -207,5 +178,5 @@ module.exports = {
   updateCandidate,
   getAllCandidates,
   getCandidateById,
-  getCandidateByUserId
+  getCandidateByUserId,
 };

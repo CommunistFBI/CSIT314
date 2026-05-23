@@ -5,6 +5,7 @@ const candidateRoutes = require('./routes/candidateRoutes');
 const jobRoutes = require('./routes/jobRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
 const authRoutes = require('./routes/authRoutes');
+const applicationRoutes = require('./routes/applicationRoutes');
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use('/api/candidates', candidateRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/applications', applicationRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
@@ -43,4 +45,3 @@ app.use((error, req, res, next) => {
 });
 
 module.exports = app;
-
