@@ -1,12 +1,11 @@
-const { getJobs, saveJobs, generateId, getUsers } = require('../data/store');
+const store = require('../data/store');
 const { parseArrayField, toNumber } = require('../utils/parseHelpers');
 const { fuzzyIncludes, objectToSearchText } = require('../utils/searchHelpers');
 
 function buildJobPayload(req, user, existingJob = null) {
   const now = new Date().toISOString();
-
   return {
-    id: existingJob?.id || generateId('job'),
+    id: existingJob?.id || store.generateId('job'),
     userId: user.id,
     employerEmail: user.email,
     jobTitle: String(req.body.jobTitle || existingJob?.jobTitle || '').trim(),
@@ -27,7 +26,7 @@ function buildJobPayload(req, user, existingJob = null) {
     isMember: Boolean(user.isMember),
     membershipType: user.isMember ? 'membership' : 'non-membership',
     createdAt: existingJob?.createdAt || now,
-    updatedAt: now
+    updatedAt: now,
   };
 }
 
@@ -35,24 +34,19 @@ function validateJobPayload(job) {
   if (!job.jobTitle || !job.companyInformation || !job.jobDescription || !job.requiredEducationLevel || !job.workMode || !job.jobLocation) {
     return 'jobTitle, companyInformation, jobDescription, requiredEducationLevel, workMode, and jobLocation are required.';
   }
-
   if (!job.requiredSkills.length) {
     return 'At least one required skill is required.';
   }
-
   return '';
 }
 
-function createJob(req, res) {
-  const jobs = getJobs();
-  const users = getUsers();
+async function createJob(req, res) {
   const userId = String(req.body.userId || '').trim();
-
   if (!userId) {
     return res.status(400).json({ success: false, message: 'userId is required to create a job.' });
   }
 
-  const user = users.find(item => item.id === userId);
+  const user = await store.findUserById(userId);
   if (!user) {
     return res.status(404).json({ success: false, message: 'User not found.' });
   }
@@ -67,23 +61,20 @@ function createJob(req, res) {
     return res.status(400).json({ success: false, message: validationMessage });
   }
 
-  saveJobs([newJob, ...jobs]);
-  res.status(201).json({ success: true, message: 'Job created successfully.', data: newJob });
+  const created = await store.insertJob(newJob);
+  res.status(201).json({ success: true, message: 'Job created successfully.', data: created });
 }
 
-function updateJob(req, res) {
-  const jobs = getJobs();
-  const jobIndex = jobs.findIndex(item => item.id === req.params.id);
-
-  if (jobIndex === -1) {
+async function updateJob(req, res) {
+  const existingJob = await store.findJobById(req.params.id);
+  if (!existingJob) {
     return res.status(404).json({ success: false, message: 'Job not found.' });
   }
 
-  const existingJob = jobs[jobIndex];
-  const user = getUsers().find(item => item.id === existingJob.userId) || {
+  const user = (await store.findUserById(existingJob.userId)) || {
     id: existingJob.userId,
     email: existingJob.employerEmail,
-    isMember: existingJob.isMember
+    isMember: existingJob.isMember,
   };
 
   const updatedJob = buildJobPayload(req, user, existingJob);
@@ -92,13 +83,11 @@ function updateJob(req, res) {
     return res.status(400).json({ success: false, message: validationMessage });
   }
 
-  jobs[jobIndex] = updatedJob;
-  saveJobs(jobs);
-
-  res.json({ success: true, message: 'Job updated successfully.', data: updatedJob });
+  const result = await store.updateJobById(req.params.id, updatedJob);
+  res.json({ success: true, message: 'Job updated successfully.', data: result });
 }
 
-function getAllJobs(req, res) {
+async function getAllJobs(req, res) {
   const {
     q = '',
     search = '',
@@ -110,82 +99,59 @@ function getAllJobs(req, res) {
     skill = '',
     jobType = '',
     minSalary = '',
-    maxSalary = ''
+    maxSalary = '',
   } = req.query;
 
   const keyword = q || search;
-  let jobs = getJobs();
+  let jobs = await store.getJobs();
 
   if (userId) {
-    jobs = jobs.filter(job => String(job.userId) === String(userId));
+    jobs = jobs.filter(j => String(j.userId) === String(userId));
   }
-
   if (keyword) {
-    jobs = jobs.filter(job => fuzzyIncludes(objectToSearchText(job, [
-      'jobTitle',
-      'companyInformation',
-      'jobDescription',
-      'requiredEducationLevel',
-      'requiredSkills',
-      'workMode',
-      'jobLocation',
-      'jobType',
-      'employerEmail'
+    jobs = jobs.filter(j => fuzzyIncludes(objectToSearchText(j, [
+      'jobTitle', 'companyInformation', 'jobDescription', 'requiredEducationLevel',
+      'requiredSkills', 'workMode', 'jobLocation', 'jobType', 'employerEmail',
     ]), keyword));
   }
-
   if (skill) {
-    jobs = jobs.filter(job => fuzzyIncludes((job.requiredSkills || []).join(' '), skill));
+    jobs = jobs.filter(j => fuzzyIncludes((j.requiredSkills || []).join(' '), skill));
   }
-
   if (workMode) {
-    jobs = jobs.filter(job => fuzzyIncludes(job.workMode, workMode));
+    jobs = jobs.filter(j => fuzzyIncludes(j.workMode, workMode));
   }
-
   if (location) {
-    jobs = jobs.filter(job => fuzzyIncludes(job.jobLocation, location));
+    jobs = jobs.filter(j => fuzzyIncludes(j.jobLocation, location));
   }
-
   if (jobType) {
-    jobs = jobs.filter(job => fuzzyIncludes(job.jobType, jobType));
+    jobs = jobs.filter(j => fuzzyIncludes(j.jobType, jobType));
   }
-
   if (minExperience !== '') {
     const minimum = toNumber(minExperience);
-    jobs = jobs.filter(job => job.yearsOfExperience >= minimum);
+    jobs = jobs.filter(j => j.yearsOfExperience >= minimum);
   }
-
   if (maxExperience !== '') {
     const maximum = toNumber(maxExperience);
-    jobs = jobs.filter(job => job.yearsOfExperience <= maximum);
+    jobs = jobs.filter(j => j.yearsOfExperience <= maximum);
   }
-
   if (minSalary !== '') {
     const minimumSalary = toNumber(minSalary);
-    jobs = jobs.filter(job => toNumber(job.salaryMax || job.salaryMin) >= minimumSalary);
+    jobs = jobs.filter(j => toNumber(j.salaryMax || j.salaryMin) >= minimumSalary);
   }
-
   if (maxSalary !== '') {
     const maximumSalary = toNumber(maxSalary);
-    jobs = jobs.filter(job => toNumber(job.salaryMin || job.salaryMax) <= maximumSalary);
+    jobs = jobs.filter(j => toNumber(j.salaryMin || j.salaryMax) <= maximumSalary);
   }
 
   res.json({ success: true, count: jobs.length, data: jobs });
 }
 
-function getJobById(req, res) {
-  const job = getJobs().find(item => item.id === req.params.id);
-
+async function getJobById(req, res) {
+  const job = await store.findJobById(req.params.id);
   if (!job) {
     return res.status(404).json({ success: false, message: 'Job not found.' });
   }
-
   res.json({ success: true, data: job });
 }
 
-module.exports = {
-  createJob,
-  updateJob,
-  getAllJobs,
-  getJobById
-};
+module.exports = { createJob, updateJob, getAllJobs, getJobById };
