@@ -14,8 +14,15 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
+  setHeaders: (res, filePath) => {
+    res.setHeader('Content-Disposition', `attachment; filename="${path.basename(filePath)}"`);
+  }
+}));
+
 app.use(express.static(path.join(process.cwd(), 'public')));
+
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
