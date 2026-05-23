@@ -149,6 +149,4 @@ function getTopCandidatesForJob(job, candidates, limit = 10) {
 module.exports = {
   getTopJobsForCandidate,
   getTopCandidatesForJob,
-  calculateJobScore,
-  calculateCandidateScore
 };

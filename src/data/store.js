@@ -1,7 +1,5 @@
 const pool = require('../config/db');
 
-
-
 function mapUser(row) {
   if (!row) return null;
   return {
@@ -94,8 +92,6 @@ function generateId(prefix) {
   return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 }
 
-
-
 async function _getSkillsMap(table, idCol, ids) {
   if (!ids.length) return {};
   const { rows } = await pool.query(
@@ -120,7 +116,7 @@ async function _upsertSkills(table, idCol, id, skills) {
   }
 }
 
-
+// --- Users ---
 
 async function getUsers() {
   const { rows } = await pool.query('SELECT * FROM "User" ORDER BY createdat DESC');
@@ -180,7 +176,7 @@ async function saveUsers(users) {
   }
 }
 
-
+// --- Candidates ---
 
 async function getCandidates() {
   const { rows } = await pool.query('SELECT * FROM "Candidate" ORDER BY createdat DESC');
@@ -266,7 +262,7 @@ async function saveCandidates(candidates) {
   }
 }
 
-
+// --- Jobs ---
 
 async function getJobs() {
   const { rows } = await pool.query('SELECT * FROM "JobPosting" ORDER BY createdat DESC');
@@ -335,7 +331,7 @@ async function saveJobs(jobs) {
   }
 }
 
-
+// --- Applications ---
 
 async function insertApplication(jobId, candidateId) {
   const { rows } = await pool.query(
@@ -386,10 +382,6 @@ async function updateApplicationStatus(id, status) {
   return mapApplication(rows[0] || null);
 }
 
-async function seedDataIfEmpty() {
-  // No-op: use Schema.SQL to set up tables, then register/create through the API
-}
-
 module.exports = {
   generateId,
   // users
@@ -417,5 +409,4 @@ module.exports = {
   getApplications,
   findApplicationById,
   updateApplicationStatus,
-  seedDataIfEmpty,
 };
