@@ -42,8 +42,8 @@ Open the `.env` file in the project root and update the connection string with y
 
 PORT=5000
 
-# PostgreSQL connection string
-# Format: postgresql://user:password@host:5432/database_name
+PostgreSQL connection string
+Format: postgresql://user:password@host:5432/database_name
 DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/talent_db
 
 
