@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TalentMatch — Candidate</title>
+  <link rel="stylesheet" href="/styles/app.css">
+</head>
+<body>
+
+<nav class="nav-merged">
+  <span class="nav-brand">TalentMatch</span>
+
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('profile')">My Profile</button>
+    <button class="tab-btn" onclick="switchTab('jobs')">Browse Jobs</button>
+    <button class="tab-btn" onclick="switchTab('applications')">My Applications</button>
+    <button class="tab-btn" onclick="switchTab('recs')">Recommendations</button>
+    <button class="tab-btn" onclick="switchTab('membership')">Membership</button>
+  </div>
+
+  <div class="nav-right">
+    <span class="nav-role">Candidate</span>
+    <span class="nav-user" id="navEmail"></span>
+    <button class="btn-logout" onclick="logout()">Log out</button>
+  </div>
+</nav>
+
+<div class="tab-panel active" id="tab-profile">
+  <div class="card">
+    <div class="card-title" id="profileTitle">Create My Profile</div>
+    <div id="profileAlert"></div>
+    <form id="profileForm">
+      <div class="form-row">
+        <div class="form-group"><label>Full Name</label><input type="text" name="fullName" id="fullName" placeholder="Jane Smith" required></div>
+        <div class="form-group"><label>Contact Information</label><input type="text" name="contactInformation" id="contactInformation" placeholder="0412 345 678" required></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Education Level</label><input type="text" name="education" id="education" placeholder="Bachelor's Degree" required></div>
+        <div class="form-group"><label>Field of Study / Major</label><input type="text" name="major" id="major" placeholder="Computer Science" required></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Years of Experience</label><input type="number" name="yearsOfExperience" id="yearsOfExperience" min="0" placeholder="2"></div>
+        <div class="form-group"><label>Skills <span class="hint">(comma-separated)</span></label><input type="text" name="skills" id="skills" placeholder="JavaScript, React, Node.js" required></div>
+      </div>
+      <div class="form-row cols-1">
+        <div class="form-group"><label>Work Experience Summary</label><textarea name="workExperience" id="workExperience" placeholder="Describe your work history and key achievements..." required></textarea></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Preferred Working Mode</label><select name="preferredWorkingMode" id="preferredWorkingMode" required><option value="">Select...</option><option value="Remote">Remote</option><option value="On-site">On-site</option><option value="Hybrid">Hybrid</option></select></div>
+        <div class="form-group"><label>Preferred Location</label><input type="text" name="preferredLocation" id="preferredLocation" placeholder="Sydney, NSW" required></div>
+      </div>
+      <div class="form-row cols-1"><div class="form-group"><label>Preferences <span class="hint">(optional, comma-separated)</span></label><input type="text" name="preferences" id="preferences" placeholder="Startup, Tech, Finance, Remote-first"></div></div>
+      <hr class="divider">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">File uploads (optional — leave blank to keep existing files)</p>
+      <div class="form-row cols-3">
+        <div class="form-group"><label>Resume</label><input type="file" name="resume" accept=".pdf,.doc,.docx"><span class="file-hint" id="existingResume"></span></div>
+        <div class="form-group"><label>Cover Letter</label><input type="file" name="coverLetter" accept=".pdf,.doc,.docx"><span class="file-hint" id="existingCoverLetter"></span></div>
+        <div class="form-group"><label>Profile Image</label><input type="file" name="profileImage" accept="image/*"><span class="file-hint" id="existingProfileImage"></span></div>
+      </div>
+      <div class="btn-group"><button type="submit" class="btn btn-primary" id="profileSubmitBtn">Create Profile</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="tab-panel" id="tab-jobs">
+  <div class="search-bar">
+    <div class="search-row">
+      <div class="form-group"><label>Keyword</label><input type="text" id="jobQ" placeholder="Developer, React..."></div>
+      <div class="form-group"><label>Skill</label><input type="text" id="jobSkill" placeholder="Python"></div>
+      <div class="form-group"><label>Work Mode</label><select id="jobWorkMode"><option value="">Any</option><option value="Remote">Remote</option><option value="On-site">On-site</option><option value="Hybrid">Hybrid</option></select></div>
+      <div class="form-group"><label>Location</label><input type="text" id="jobLocation" placeholder="Sydney"></div>
+      <div class="form-group"><label>Job Type</label><select id="jobType"><option value="">Any</option><option value="Full-time">Full-time</option><option value="Part-time">Part-time</option><option value="Contract">Contract</option><option value="Casual">Casual</option></select></div>
+      <div class="form-group"><label>Min Salary ($)</label><input type="number" id="jobMinSalary" placeholder="60000"></div>
+      <button class="btn btn-primary" onclick="searchJobs()">Search</button>
+      <button class="btn btn-outline" onclick="clearJobSearch()">Clear</button>
+    </div>
+  </div>
+  <div class="section-header"><span id="jobResultCount" style="color:var(--muted);font-size:13px"></span></div>
+  
+  <div class="jobs-master-detail">
+    <div class="master-list" id="jobMasterList"></div>
+    <div class="detail-panel" id="jobDetailView"></div>
+  </div>
+</div>
+
+<div class="tab-panel" id="tab-applications">
+  <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center"><h2 style="font-size:18px;font-weight:700">My Applications</h2><button class="btn btn-outline" onclick="loadMyApplications()">Refresh</button></div>
+  <div id="appList"><div class="loading">Loading applications…</div></div>
+</div>
+
+<div class="tab-panel" id="tab-recs">
+  <div id="recsInfo"></div>
+  <div class="jobs-master-detail">
+    <div class="master-list" id="recMasterList"></div>
+    <div class="detail-panel" id="recDetailView"></div>
+  </div>
+</div>
+
+<div class="tab-panel" id="tab-membership">
+  <div class="card membership-card"><div id="membershipStatus"></div><p class="membership-desc">Members get <strong>unlimited job recommendations</strong> ranked by match score.<br>Non-members see the top 10 matches only.</p><div id="membershipAlert"></div><button class="btn" id="membershipToggleBtn" onclick="toggleMembership()">Loading...</button></div>
+</div>
+
+<script>
+const user = JSON.parse(localStorage.getItem('tm_user') || 'null');
+if (!user || user.role !== 'candidate') window.location.href = '/index.html';
+document.getElementById('navEmail').textContent = user.email;
+
+function logout() {
+  localStorage.removeItem('tm_user');
+  window.location.href = '/index.html';
+}
+
+let currentJobs = [];           
+let selectedJobId = null;       
+
+let currentRecs = [];
+let selectedRecId = null;
+
+const TABS = ['profile', 'jobs', 'applications', 'recs', 'membership'];
+function switchTab(name) {
+  TABS.forEach(t => {
+    const panel = document.getElementById('tab-' + t);
+    if (panel) {
+      if (t === name) panel.classList.add('active');
+      else panel.classList.remove('active');
+    }
+  });
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', TABS[i] === name);
+  });
+  if (name === 'recs') loadRecommendations();
+  if (name === 'membership') loadMembership();
+  if (name === 'jobs') searchJobs();
+  if (name === 'applications') loadMyApplications();
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  });
+}
+
+function showAlert(id, msg, type = 'error') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+  setTimeout(() => { el.innerHTML = ''; }, 5000);
+}
+
+function showToast(msg, type = 'success') {
+  const toast = document.createElement('div');
+  toast.className = `alert alert-${type}`;
+  toast.style.cssText = 'position:fixed;top:120px;right:20px;z-index:9999;min-width:280px;box-shadow:0 4px 12px rgba(0,0,0,.15)';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
+
+async function apiFetch(url, opts = {}) {
+  const res = await fetch(url, opts);
+  return res.json();
+}
+
+function getStatusBadge(status) {
+  const map = { Pending:'tag amber', Reviewed:'tag', Shortlisted:'tag green', Rejected:'tag red', Accepted:'tag purple' };
+  return `<span class="${map[status] || 'tag'}">${status}</span>`;
+}
+
+let existingProfile = null;
+
+async function loadProfile() {
+  try {
+    const data = await apiFetch(`/api/candidates/user/${user.id}`);
+    if (data.success && data.data) {
+      existingProfile = data.data;
+      fillProfileForm(existingProfile);
+      document.getElementById('profileTitle').textContent = 'Update My Profile';
+      document.getElementById('profileSubmitBtn').textContent = 'Update Profile';
+    }
+  } catch { }
+}
+
+function fillProfileForm(p) {
+  ['fullName','contactInformation','education','major','yearsOfExperience','workExperience','preferredLocation'].forEach(f => {
+    const el = document.getElementById(f); if (el) el.value = p[f] != null ? p[f] : '';
+  });
+  const pwm = document.getElementById('preferredWorkingMode'); if (pwm) pwm.value = p.preferredWorkingMode || '';
+  document.getElementById('skills').value = (p.skills || []).join(', ');
+  document.getElementById('preferences').value = (p.preferences || []).join(', ');
+  if (p.resumeFileName) document.getElementById('existingResume').textContent = 'Current: ' + p.resumeFileName;
+  if (p.coverLetterFileName) document.getElementById('existingCoverLetter').textContent = 'Current: ' + p.coverLetterFileName;
+  if (p.profileImageFileName) document.getElementById('existingProfileImage').textContent = 'Current: ' + p.profileImageFileName;
+}
+
+document.getElementById('profileForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.getElementById('profileSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const formData = new FormData(e.target);
+  formData.set('userId', user.id);
+  try {
+    let res; let data;
+    if (existingProfile) {
+      res = await fetch(`/api/candidates/${existingProfile.id}`, { method: 'PUT', body: formData });
+      data = await res.json();
+    } else {
+      res = await fetch('/api/candidates', { method: 'POST', body: formData });
+      data = await res.json();
+    }
+    if (data.success) {
+      existingProfile = data.data;
+      showAlert('profileAlert', data.message || 'Profile saved!', 'success');
+      document.getElementById('profileTitle').textContent = 'Update My Profile';
+    } else {
+      showAlert('profileAlert', data.message || 'Failed to save profile.');
+    }
+  } catch { showAlert('profileAlert', 'Network error.'); }
+  finally { btn.disabled = false; btn.textContent = existingProfile ? 'Update Profile' : 'Create Profile'; }
+});
+
+function renderMasterList(jobs, selectedId, containerId, onSelectCallback) {
+  const container = document.getElementById(containerId);
+  if (!jobs.length) {
+    container.innerHTML = '<div class="empty-state" style="padding:32px 16px; text-align:center">📭 No jobs found<br><span style="font-size:12px">Adjust filters</span></div>';
+    return;
+  }
+  container.innerHTML = jobs.map(job => {
+    const salaryShort = (job.salaryMin || job.salaryMax) ? `$${job.salaryMin || ''}${job.salaryMin && job.salaryMax ? '-' : ''}${job.salaryMax || ''}` : 'salary N/A';
+    const activeClass = (selectedId === job.id) ? 'active' : '';
+    return `
+      <div class="master-item ${activeClass}" data-job-id="${job.id}">
+        <div class="master-title">${escapeHtml(job.jobTitle || 'Untitled Position')}</div>
+        <div class="master-company">${escapeHtml(job.companyInformation || 'Company')}</div>
+        <div class="master-meta">
+          <span>📍 ${escapeHtml(job.jobLocation || 'Any')}</span>
+          <span>💼 ${escapeHtml(job.workMode || '-')}</span>
+          <span>💰 ${salaryShort}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+  container.querySelectorAll('.master-item').forEach(el => {
+    const jobId = el.getAttribute('data-job-id');
+    el.addEventListener('click', (e) => { e.stopPropagation(); onSelectCallback(jobId); });
+  });
+}
+
+function selectJobById(jobId) {
+  if (!jobId) return;
+  const job = currentJobs.find(j => j.id == jobId);
+  if (!job) return;
+  selectedJobId = job.id;
+  document.getElementById('jobMasterList').querySelectorAll('.master-item').forEach(el => {
+    el.classList.toggle('active', el.getAttribute('data-job-id') == jobId);
+  });
+  renderDetailedJobView(job, 'jobDetailView');
+  const detailPanel = document.getElementById('jobDetailView');
+  if (detailPanel) detailPanel.scrollTop = 0;
+}
+
+function selectRecById(jobId) {
+  if (!jobId) return;
+  const job = currentRecs.find(j => j.id == jobId);
+  if (!job) return;
+  selectedRecId = job.id;
+  document.getElementById('recMasterList').querySelectorAll('.master-item').forEach(el => {
+    el.classList.toggle('active', el.getAttribute('data-job-id') == jobId);
+  });
+  renderDetailedJobView(job, 'recDetailView');
+  const detailPanel = document.getElementById('recDetailView');
+  if (detailPanel) detailPanel.scrollTop = 0;
+}
+
+function renderDetailedJobView(job, containerId) {
+  const container = document.getElementById(containerId);
+  if (!job) {
+    container.innerHTML = `<div class="empty-detail"><span class="empty-icon">📌</span><p>Select a job from the list to see details</p></div>`;
+    return;
+  }
+  const salary = (job.salaryMin || job.salaryMax) ? `$${(job.salaryMin || 0).toLocaleString()} – $${(job.salaryMax || 0).toLocaleString()}` : 'Not specified';
+  const skillsHtml = (job.requiredSkills || []).map(s => `<span class="tag skill-tag">${escapeHtml(s)}</span>`).join('');
+  const matchReasons = (job.matchReasons && job.matchReasons.length) ? `<div style="margin:10px 0 12px; background:#eef6fc; padding:12px; border-radius:14px"><span style="font-weight:600">✨ Match insights:</span><ul style="margin:8px 0 0 20px; font-size:13px">${job.matchReasons.map(r => `<li>${escapeHtml(r)}</li>`).join('')}</ul></div>` : '';
+  const matchScoreBadge = job.matchScore ? `<span class="tag purple" style="margin-left:10px">Match ${job.matchScore}%</span>` : '';
+  container.innerHTML = `
+    <div class="detail-card">
+      <div class="detail-header">
+        <h2 class="detail-title">${escapeHtml(job.jobTitle || 'Job Position')} ${matchScoreBadge}</h2>
+        <div class="detail-company">🏢 ${escapeHtml(job.companyInformation || 'Confidential Company')}</div>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-field"><strong>📍 Location</strong>${escapeHtml(job.jobLocation || 'Remote / Any')}</div>
+        <div class="detail-field"><strong>💼 Work mode</strong>${escapeHtml(job.workMode || 'Not specified')}</div>
+        <div class="detail-field"><strong>⏱ Job type</strong>${escapeHtml(job.jobType || 'Full-time')}</div>
+        <div class="detail-field"><strong>💰 Salary range</strong>${salary}</div>
+        <div class="detail-field"><strong>📅 Experience needed</strong>${job.yearsOfExperience ? job.yearsOfExperience + ' years' : 'Not required'}</div>
+        <div class="detail-field"><strong>🔧 Required skills</strong><div class="tags" style="margin-top:5px">${skillsHtml || '<em>None listed</em>'}</div></div>
+      </div>
+      <div class="detail-desc">
+        <strong>📋 Job description</strong><br>
+        ${escapeHtml(job.jobDescription || 'No description provided by employer.')}
+      </div>
+      ${matchReasons}
+      <button class="btn btn-primary apply-btn-large" onclick="applyToJob('${job.id}')">📄 Apply for this position</button>
+    </div>
+  `;
+}
+
+async function applyToJob(jobId) {
+  if (!jobId) { showToast('No job selected', 'error'); return; }
+  if (!existingProfile) { await loadProfile(); }
+  if (!existingProfile) { showToast('Please complete your profile first before applying.', 'error'); return; }
+  try {
+    const data = await apiFetch('/api/applications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId, candidateId: existingProfile.id }),
+    });
+    if (data.success) showToast('Application submitted!', 'success');
+    else showToast(data.message || 'Failed to apply.', 'error');
+  } catch { showToast('Network error while applying.', 'error'); }
+}
+
+async function searchJobs() {
+  const params = new URLSearchParams();
+  const q = document.getElementById('jobQ').value.trim();
+  const skill = document.getElementById('jobSkill').value.trim();
+  const workMode = document.getElementById('jobWorkMode').value;
+  const location = document.getElementById('jobLocation').value.trim();
+  const jobType = document.getElementById('jobType').value;
+  const minSalary = document.getElementById('jobMinSalary').value.trim();
+  if (q) params.set('q', q);
+  if (skill) params.set('skill', skill);
+  if (workMode) params.set('workMode', workMode);
+  if (location) params.set('location', location);
+  if (jobType) params.set('jobType', jobType);
+  if (minSalary) params.set('minSalary', minSalary);
+
+  const masterContainer = document.getElementById('jobMasterList');
+  const detailContainer = document.getElementById('jobDetailView');
+  masterContainer.innerHTML = '<div class="loading">Searching jobs...</div>';
+  detailContainer.innerHTML = '<div class="empty-detail"><span>🔍</span><p>Select a job from left to view details</p></div>';
+  document.getElementById('jobResultCount').textContent = '';
+  try {
+    const data = await apiFetch(`/api/jobs?${params}`);
+    document.getElementById('jobResultCount').textContent = `${data.count || 0} job${data.count !== 1 ? 's' : ''} found`;
+    if (!data.data || !data.data.length) {
+      masterContainer.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><p>No jobs match your filters.</p></div>';
+      detailContainer.innerHTML = '<div class="empty-detail"><span>📭</span><p>No job selected — adjust search criteria</p></div>';
+      currentJobs = []; selectedJobId = null;
+      return;
+    }
+    currentJobs = data.data;
+    selectedJobId = currentJobs[0]?.id || null;
+    renderMasterList(currentJobs, selectedJobId, 'jobMasterList', selectJobById);
+    if (selectedJobId) renderDetailedJobView(currentJobs.find(j => j.id == selectedJobId), 'jobDetailView');
+    else renderDetailedJobView(null, 'jobDetailView');
+  } catch (err) {
+    console.error(err);
+    masterContainer.innerHTML = '<div class="alert alert-error">Failed to load jobs.</div>';
+    detailContainer.innerHTML = '<div class="empty-detail">⚠️ Error loading job details</div>';
+  }
+}
+
+function clearJobSearch() {
+  ['jobQ','jobSkill','jobWorkMode','jobLocation','jobType','jobMinSalary'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  searchJobs();
+}
+
+async function loadMyApplications() {
+  const list = document.getElementById('appList');
+  list.innerHTML = '<div class="loading">Loading applications…</div>';
+  if (!existingProfile) { await loadProfile(); }
+  if (!existingProfile) {
+    list.innerHTML = '<div class="alert alert-info">Create your profile first to see applications.</div>';
+    return;
+  }
+  try {
+    const data = await apiFetch(`/api/applications?candidateId=${existingProfile.id}`);
+    if (!data.data || !data.data.length) {
+      list.innerHTML = '<div class="empty-state"><div class="empty-icon">📄</div><p>No applications yet. Browse jobs and click "Apply for this position".</p></div>';
+      return;
+    }
+    list.innerHTML = data.data.map(app => {
+      const acceptBtn = app.status === 'Shortlisted'
+        ? `<button class="btn btn-primary btn-sm" onclick="acceptOffer(${app.id})">Accept Offer</button>`
+        : '';
+      return `
+        <div class="card" style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+            <div style="flex:1">
+              <h3 style="font-size:15px;font-weight:600;margin-bottom:4px">${escapeHtml(app.jobTitle || 'Job')}</h3>
+              <p style="font-size:13px;color:var(--muted);margin-bottom:8px">${escapeHtml(app.companyInformation || '')}</p>
+              <div class="tags">${getStatusBadge(app.status)}</div>
+              <p style="font-size:12px;color:var(--muted);margin-top:6px">Applied: ${new Date(app.appliedAt).toLocaleDateString()}</p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+              ${acceptBtn}
+            </div>
+          </div>
+          ${app.status === 'Accepted' ? '<div class="alert alert-success" style="margin-top:10px">🎉 You accepted this offer!</div>' : ''}
+          ${app.status === 'Shortlisted' ? '<div class="alert alert-info" style="margin-top:10px">🌟 You have been shortlisted! Click Accept Offer if you would like to proceed.</div>' : ''}
+        </div>`;
+    }).join('');
+  } catch { list.innerHTML = '<div class="alert alert-error">Failed to load applications.</div>'; }
+}
+
+async function acceptOffer(appId) {
+  try {
+    const data = await apiFetch(`/api/applications/${appId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'Accepted' })
+    });
+    if (data.success) { showToast('Offer accepted! Congratulations! 🎉', 'success'); loadMyApplications(); }
+    else showToast(data.message || 'Failed to accept offer.', 'error');
+  } catch { showToast('Network error.', 'error'); }
+}
+
+async function loadRecommendations() {
+  const masterContainer = document.getElementById('recMasterList');
+  const detailContainer = document.getElementById('recDetailView');
+  const recsInfo = document.getElementById('recsInfo');
+  masterContainer.innerHTML = '<div class="loading">Loading recommendations…</div>';
+  detailContainer.innerHTML = '<div class="empty-detail"><span>🔍</span><p>Select a job from left to view details</p></div>';
+  recsInfo.innerHTML = '';
+  if (!existingProfile) { await loadProfile(); }
+  if (!existingProfile) {
+    masterContainer.innerHTML = '<div class="alert alert-info" style="margin:20px;">Complete your profile first to get recommendations.</div>';
+    return;
+  }
+  try {
+    const data = await apiFetch(`/api/recommendations/jobs/${existingProfile.id}`);
+    if (!data.success) { masterContainer.innerHTML = `<div class="alert alert-error" style="margin:20px;">${data.message}</div>`; return; }
+    const memberBadge = data.membershipActive
+      ? '<span class="tag green">⭐ Member — Unlimited results</span>'
+      : `<span class="tag amber">Non-member — Top ${data.recommendationLimit} shown</span>`;
+    recsInfo.innerHTML = `<div class="card" style="padding:14px 20px;margin-bottom:16px"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><span style="font-size:14px;font-weight:600">Recommendations for ${escapeHtml(existingProfile.fullName || user.email)}</span><div class="tags" style="margin:0">${memberBadge}</div></div></div>`;
+    if (!data.data || !data.data.length) {
+      masterContainer.innerHTML = '<div class="empty-state"><div class="empty-icon">✨</div><p>No recommendations yet.</p></div>';
+      detailContainer.innerHTML = '<div class="empty-detail"><span>📭</span><p>No recommendations available</p></div>';
+      currentRecs = []; selectedRecId = null;
+      return;
+    }
+    currentRecs = data.data;
+    selectedRecId = currentRecs[0]?.id || null;
+    renderMasterList(currentRecs, selectedRecId, 'recMasterList', selectRecById);
+    if (selectedRecId) renderDetailedJobView(currentRecs.find(j => j.id == selectedRecId), 'recDetailView');
+    else renderDetailedJobView(null, 'recDetailView');
+  } catch {
+    masterContainer.innerHTML = '<div class="alert alert-error" style="margin:20px;">Network error.</div>';
+    detailContainer.innerHTML = '<div class="empty-detail">⚠️ Error loading details</div>';
+  }
+}
+
+async function loadMembership() {
+  try {
+    const data = await apiFetch(`/api/auth/users/${user.id}`);
+    if (!data.success) return;
+    const isMember = data.data.isMember;
+    document.getElementById('membershipStatus').innerHTML = `<div class="membership-status ${isMember ? 'active' : 'inactive'}">${isMember ? '⭐ Member — Active' : '○ Standard Plan'}</div>`;
+    const btn = document.getElementById('membershipToggleBtn');
+    btn.textContent = isMember ? 'Cancel Membership' : 'Activate Membership';
+    btn.className = `btn ${isMember ? 'btn-danger' : 'btn-primary'}`;
+  } catch {}
+}
+
+async function toggleMembership() {
+  const btn = document.getElementById('membershipToggleBtn');
+  btn.disabled = true;
+  try {
+    const current = await apiFetch(`/api/auth/users/${user.id}`);
+    const isMember = current?.data?.isMember;
+    const res = await apiFetch(`/api/auth/users/${user.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isMember: !isMember })
+    });
+    if (res.success) { showAlert('membershipAlert', res.message, 'success'); loadMembership(); }
+    else showAlert('membershipAlert', res.message || 'Failed to update.');
+  } catch { showAlert('membershipAlert', 'Network error.'); }
+  finally { btn.disabled = false; }
+}
+
+loadProfile();
+</script>
+</body>
+</html>
