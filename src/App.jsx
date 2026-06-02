@@ -12,7 +12,8 @@ import CandidateDetailPage from './pages/CandidateDetailPage';
 const ProtectedRoute = ({ children, role }) => {
     const { user } = useAppContext();
     if (!user) return <Navigate to="/login" />;
-    if (role && user.role !== role) return <Navigate to="/" />;
+    // if role mismatch, send to authenticated home page
+    if (role && user.role !== role) return <Navigate to="/home" />;
     return children;
 };
 
@@ -25,7 +26,8 @@ function App() {
                     <Routes>
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/select-identity/:role" element={<SelectIdentityPage />} />
-                        <Route path="/" element={
+                        <Route path="/" element={<LoginPage />} />
+                        <Route path="/home" element={
                             <ProtectedRoute><HomePage /></ProtectedRoute>
                         } />
                         <Route path="/candidate/profile" element={<CandidateProfilePage />} />
