@@ -31,7 +31,7 @@ CREATE TABLE "User" (
 );
 
 
--- candidate 
+-- Candidate 
 
 CREATE TABLE "Candidate" (
     candidateid          VARCHAR(64)  PRIMARY KEY,
@@ -39,11 +39,11 @@ CREATE TABLE "Candidate" (
     useremail            VARCHAR(255),
     fullname             VARCHAR(255) NOT NULL,
     contactinformation   VARCHAR(255),
-    education            VARCHAR(255),
+    education            VARCHAR(100) CHECK (education IN ('High School','Diploma','Bachelor','Master','PhD','Other','')),
     major                VARCHAR(255),
     yearsofexperience    INT          NOT NULL DEFAULT 0,
-    workexperience       TEXT,
-    preferredworkingmode VARCHAR(50),
+    workexperience       TEXT,        NOT NULL DEFAULT '',
+    preferredworkingmode VARCHAR(20)  CHECK (preferredworkingmode IN ('Remote','On-site','Hybrid','')),
     preferredlocation    VARCHAR(255),
     preferences          JSONB        NOT NULL DEFAULT '[]',
     resumefilename       VARCHAR(255),
@@ -89,9 +89,9 @@ CREATE TABLE "JobPosting" (
     jobtitle               VARCHAR(255) NOT NULL,
     companyinformation     VARCHAR(255) NOT NULL,
     jobdescription         TEXT         NOT NULL,
-    requirededucationlevel VARCHAR(255),
+    requirededucationlevel VARCHAR(100) CHECK (requirededucationlevel IN ('High School','Diploma','Bachelor','Master','PhD','Any','')),
     yearsofexperience      INT          NOT NULL DEFAULT 0,
-    workmode               VARCHAR(50)  NOT NULL,
+    workmode               VARCHAR(20)  NOT NULL CHECK (workmode IN ('Remote','On-site','Hybrid')),
     joblocation            VARCHAR(255) NOT NULL,
     jobtype                VARCHAR(50),
     salarymin              INTEGER,
@@ -99,7 +99,8 @@ CREATE TABLE "JobPosting" (
     ismember               BOOLEAN      NOT NULL DEFAULT FALSE,
     membershiptype         VARCHAR(50)  NOT NULL DEFAULT 'non-membership',
     createdat              TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-    updatedat              TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    updatedat              TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    CONSTRAINT salary_range_valid CHECK (salarymin IS NULL OR salarymax IS NULL OR salarymax >= salarymin) -- Make sure the range is valid
 );
 
 CREATE TABLE "JobSkill" (
@@ -110,7 +111,7 @@ CREATE TABLE "JobSkill" (
 );
 
 
--- applications
+-- Applications
 
 CREATE TABLE "Application" (
     applicationid  SERIAL      PRIMARY KEY,
@@ -123,11 +124,21 @@ CREATE TABLE "Application" (
 );
 
 
--- indexes
+--
+-- Indexes
+--
+
+-- Auth
 CREATE INDEX idx_user_email          ON "User"(email);
+
+-- Profile owner
 CREATE INDEX idx_candidate_userid    ON "Candidate"(userid);
 CREATE INDEX idx_job_userid          ON "JobPosting"(userid);
+
+-- Skills fetch. Used by _getSkillsMap
 CREATE INDEX idx_candidateskill_cand ON "CandidateSkill"(candidateid);
 CREATE INDEX idx_jobskill_job        ON "JobSkill"(jobid);
+
+-- Application lookup
 CREATE INDEX idx_app_job             ON "Application"(jobid);
 CREATE INDEX idx_app_candidate       ON "Application"(candidateid);
