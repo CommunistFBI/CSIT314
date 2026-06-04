@@ -70,10 +70,13 @@ async function updateMembership(req, res) {
   }
 
   const isMember = raw === true || raw === 'true';
-  const updated = await store.updateUserById(req.params.id, {
-    isMember,
-    membershipType: isMember ? 'membership' : 'non-membership',
-  });
+  const membershipType = isMember ? 'membership' : 'non-membership';
+
+  // Update User row
+  const updated = await store.updateUserById(req.params.id, { isMember, membershipType });
+
+  // Sync the ismember columns on Candidate and JobPosting
+  await store.syncMembershipByUserId(req.params.id, isMember, membershipType);
 
   res.json({
     success: true,
