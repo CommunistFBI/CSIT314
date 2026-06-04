@@ -139,6 +139,20 @@ CREATE INDEX idx_job_userid          ON "JobPosting"(userid);
 CREATE INDEX idx_candidateskill_cand ON "CandidateSkill"(candidateid);
 CREATE INDEX idx_jobskill_job        ON "JobSkill"(jobid);
 
+-- Skill name search
+CREATE INDEX idx_cskill_name         ON "CandidateSkill"(skillname);
+CREATE INDEX idx_jskill_name         ON "JobSkill"(skillname);
+
+-- Candidate filter by column
+CREATE INDEX idx_cand_workmode       ON "Candidate"(preferredworkingmode);
+CREATE INDEX idx_cand_location       ON "Candidate"(preferredlocation);
+CREATE INDEX idx_cand_exp            ON "Candidate"(yearsofexperience);
+
+-- Job filter by column
+CREATE INDEX idx_job_workmode        ON "JobPosting"(workmode);
+CREATE INDEX idx_job_location        ON "JobPosting"(joblocation);
+CREATE INDEX idx_job_exp             ON "JobPosting"(yearsofexperience);
+
 -- Application lookup
 CREATE INDEX idx_app_job             ON "Application"(jobid);
 CREATE INDEX idx_app_candidate       ON "Application"(candidateid);
