@@ -1,71 +1,65 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 
 const CandidateProfilePage = () => {
-    const { user, candidates, addCandidateProfile, updateCandidateProfile } = useAppContext();
+    const { user, candidateProfile, saveCandidateProfile, loading, error } = useAppContext();
     const navigate = useNavigate();
-
-    // State for form fields
     const [form, setForm] = useState({
-        fullName: '',
-        contact: '',
-        education: '',
-        major: '',
-        yearsOfExperience: ''
+        fullName: '', contactInformation: '', education: 'Bachelor', major: '',
+        yearsOfExperience: '', workExperience: '', skills: '',
+        preferredWorkingMode: 'Remote', preferredLocation: ''
     });
 
-    // When the user logs in as an existing candidate, pre‑fill the form
     useEffect(() => {
-        if (user && user.role === 'candidate') {
-            // Check if this is an existing candidate (present in candidates array)
-            const exists = candidates.some(c => c.id === user.id);
-            if (exists) {
-                setForm({
-                    fullName: user.fullName || '',
-                    contact: user.contact || '',
-                    education: user.education || '',
-                    major: user.major || '',
-                    yearsOfExperience: user.yearsOfExperience || ''
-                });
-            }
-        }
-    }, [user, candidates]);
+        if (candidateProfile) setForm({
+            fullName: candidateProfile.fullName || '',
+            contactInformation: candidateProfile.contactInformation || '',
+            education: candidateProfile.education || 'Bachelor',
+            major: candidateProfile.major || '',
+            yearsOfExperience: candidateProfile.yearsOfExperience ?? '',
+            workExperience: candidateProfile.workExperience || '',
+            skills: candidateProfile.skills?.join(', ') || '',
+            preferredWorkingMode: candidateProfile.preferredWorkingMode || 'Remote',
+            preferredLocation: candidateProfile.preferredLocation || ''
+        });
+    }, [candidateProfile]);
 
-    // Prevent wrong role from accessing (optional)
-    if (user && user.role !== 'candidate') return <Navigate to="/" />;
-
-    const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const profileData = {
-            ...form,
-            yearsOfExperience: Number(form.yearsOfExperience)
-        };
-
-        // Check if this is an existing candidate (by id)
-        const exists = user && candidates.some(c => c.id === user.id);
-        if (exists) {
-            updateCandidateProfile(user.id, profileData);
-        } else {
-            // New candidate
-            addCandidateProfile(profileData);
-        }
-        navigate('/');
+        const fd = new FormData();
+        fd.append('userId', user.id);
+        fd.append('fullName', form.fullName);
+        fd.append('contactInformation', form.contactInformation);
+        fd.append('education', form.education);
+        fd.append('major', form.major);
+        fd.append('yearsOfExperience', form.yearsOfExperience);
+        fd.append('workExperience', form.workExperience);
+        fd.append('preferredWorkingMode', form.preferredWorkingMode);
+        fd.append('preferredLocation', form.preferredLocation);
+        form.skills.split(',').map(s => s.trim()).filter(Boolean).forEach(s => fd.append('skills', s));
+        await saveCandidateProfile(fd);
+        navigate('/home');
     };
 
     return (
         <form onSubmit={handleSubmit}>
-            <h2>{user && candidates.some(c => c.id === user.id) ? 'Edit Your Profile' : 'Create Candidate Profile'}</h2>
-            <input name="fullName" placeholder="Full Name" required value={form.fullName} onChange={handleChange} />
-            <input name="contact" placeholder="Contact" required value={form.contact} onChange={handleChange} />
-            <input name="education" placeholder="Education (e.g., Bachelor of CS)" required value={form.education} onChange={handleChange} />
-            <input name="major" placeholder="Major" required value={form.major} onChange={handleChange} />
-            <input name="yearsOfExperience" type="number" placeholder="Years of Experience" required value={form.yearsOfExperience} onChange={handleChange} />
-            <button type="submit">Save Profile</button>
+            <h2>{candidateProfile ? 'Edit Profile' : 'Create Profile'}</h2>
+            <input placeholder="Full Name" required value={form.fullName} onChange={e => setForm({...form, fullName: e.target.value})} />
+            <input placeholder="Contact" required value={form.contactInformation} onChange={e => setForm({...form, contactInformation: e.target.value})} />
+            <select value={form.education} onChange={e => setForm({...form, education: e.target.value})}>
+                {['High School','Diploma','Bachelor','Master','PhD','Other'].map(o => <option key={o}>{o}</option>)}
+            </select>
+            <input placeholder="Major" required value={form.major} onChange={e => setForm({...form, major: e.target.value})} />
+            <input type="number" min="0" placeholder="Years of Experience" required value={form.yearsOfExperience} onChange={e => setForm({...form, yearsOfExperience: e.target.value})} />
+            <textarea placeholder="Work Experience" required rows={4} value={form.workExperience} onChange={e => setForm({...form, workExperience: e.target.value})} />
+            <input placeholder="Skills (comma-separated)" required value={form.skills} onChange={e => setForm({...form, skills: e.target.value})} />
+            <select value={form.preferredWorkingMode} onChange={e => setForm({...form, preferredWorkingMode: e.target.value})}>
+                {['Remote','On-site','Hybrid'].map(o => <option key={o}>{o}</option>)}
+            </select>
+            <input placeholder="Preferred Location" required value={form.preferredLocation} onChange={e => setForm({...form, preferredLocation: e.target.value})} />
+            {error && <p style={{ color: 'red' }}>{error}</p>}
+            <button type="submit" disabled={loading}>{loading ? 'Saving...' : 'Save Profile'}</button>
         </form>
     );
 };

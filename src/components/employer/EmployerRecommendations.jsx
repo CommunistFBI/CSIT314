@@ -5,19 +5,24 @@ import CandidateCard from './CandidateCard';
 const EmployerRecommendations = () => {
     const { jobs, getRecommendedCandidates } = useAppContext();
     const [selectedJobId, setSelectedJobId] = useState('');
-    const job = jobs.find(j => j.id === Number(selectedJobId));
-    const recommended = getRecommendedCandidates(job);
+    const [recommended, setRecommended] = useState([]);
+
+    const handleJobChange = (e) => {
+        setSelectedJobId(e.target.value);
+        if (e.target.value)
+            getRecommendedCandidates(e.target.value).then(setRecommended);
+        else
+            setRecommended([]);
+    };
 
     return (
         <section>
-            <h2>Recommended Candidates (Top 10)</h2>
-            <select onChange={e => setSelectedJobId(e.target.value)} value={selectedJobId}>
+            <h2>Recommended Candidates</h2>
+            <select value={selectedJobId} onChange={handleJobChange}>
                 <option value="">-- Select a job --</option>
-                {jobs.map(j => <option key={j.id} value={j.id}>{j.title}</option>)}
+                {jobs.map(j => <option key={j.id} value={j.id}>{j.jobTitle}</option>)}
             </select>
-            <div className="grid">
-                {recommended.map(c => <CandidateCard key={c.id} candidate={c} />)}
-            </div>
+            {recommended.map(c => <CandidateCard key={c.id} candidate={c} />)}
         </section>
     );
 };

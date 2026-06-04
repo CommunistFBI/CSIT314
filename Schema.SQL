@@ -42,7 +42,7 @@ CREATE TABLE "Candidate" (
     education            VARCHAR(100) CHECK (education IN ('High School','Diploma','Bachelor','Master','PhD','Other','')),
     major                VARCHAR(255),
     yearsofexperience    INT          NOT NULL DEFAULT 0,
-    workexperience       TEXT,        NOT NULL DEFAULT '',
+    workexperience       TEXT         NOT NULL DEFAULT '',
     preferredworkingmode VARCHAR(20)  CHECK (preferredworkingmode IN ('Remote','On-site','Hybrid','')),
     preferredlocation    VARCHAR(255),
     preferences          JSONB        NOT NULL DEFAULT '[]',
@@ -69,14 +69,14 @@ CREATE TABLE "CandidateSkill" (
 -- Employers
 
 CREATE TABLE "Employer" (
-    employerid   VARCHAR(64)  PRIMARY KEY,
-    userid       VARCHAR(64)  NOT NULL UNIQUE REFERENCES "User"(userid) ON DELETE CASCADE,
-    companyname  VARCHAR(255) NOT NULL,
-    industry     VARCHAR(255),
-    companysize  VARCHAR(100),
-    website      VARCHAR(255),
-    description  TEXT,
-    createdat    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    employerid  VARCHAR(64)  PRIMARY KEY,
+    userid      VARCHAR(64)  NOT NULL UNIQUE REFERENCES "User"(userid) ON DELETE CASCADE,
+    companyname VARCHAR(255) NOT NULL,
+    industry    VARCHAR(255),
+    companysize VARCHAR(100),
+    website     VARCHAR(255),
+    description TEXT,
+    createdat   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
 
@@ -104,25 +104,21 @@ CREATE TABLE "JobPosting" (
 );
 
 CREATE TABLE "JobSkill" (
-    jobskillid  SERIAL      PRIMARY KEY,
-    jobid       VARCHAR(64) NOT NULL REFERENCES "JobPosting"(jobid) ON DELETE CASCADE,
-    skillname   VARCHAR(100) NOT NULL,
+    jobskillid SERIAL      PRIMARY KEY,
+    jobid      VARCHAR(64) NOT NULL REFERENCES "JobPosting"(jobid) ON DELETE CASCADE,
+    skillname  VARCHAR(100) NOT NULL,
     UNIQUE (jobid, skillname)
 );
 
-
--- Applications
-
 CREATE TABLE "Application" (
-    applicationid  SERIAL      PRIMARY KEY,
-    jobid          VARCHAR(64) NOT NULL REFERENCES "JobPosting"(jobid) ON DELETE CASCADE,
-    candidateid    VARCHAR(64) NOT NULL REFERENCES "Candidate"(candidateid) ON DELETE CASCADE,
-    status         VARCHAR(20) NOT NULL DEFAULT 'Pending'
-                               CHECK (status IN ('Pending', 'Reviewed', 'Shortlisted', 'Rejected', 'Accepted')),
-    appliedat      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    applicationid SERIAL      PRIMARY KEY,
+    jobid         VARCHAR(64) NOT NULL REFERENCES "JobPosting"(jobid) ON DELETE CASCADE,
+    candidateid   VARCHAR(64) NOT NULL REFERENCES "Candidate"(candidateid) ON DELETE CASCADE,
+    status        VARCHAR(20) NOT NULL DEFAULT 'Pending'
+                              CHECK (status IN ('Pending','Reviewed','Shortlisted','Rejected','Accepted')),
+    appliedat     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (jobid, candidateid)
 );
-
 
 --
 -- Indexes
