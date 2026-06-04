@@ -92,6 +92,7 @@ function generateId(prefix) {
   return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 }
 
+// fetch skills for a batch of IDs
 async function _getSkillsMap(table, idCol, ids) {
   if (!ids.length) return {};
   const { rows } = await pool.query(
@@ -106,12 +107,13 @@ async function _getSkillsMap(table, idCol, ids) {
   }, {});
 }
 
+// Replace skills automatically within client transaction
 async function _upsertSkills(table, idCol, id, skills) {
-  await pool.query(`DELETE FROM "${table}" WHERE ${idCol} = $1`, [id]);
+  await client.query(`DELETE FROM "${table}" WHERE ${idCol} = $1`, [id]);
   for (const skill of (skills || [])) {
-    await pool.query(
+    await client.query(
       `INSERT INTO "${table}" (${idCol}, skillname) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-      [id, skill]
+      [id, String(skill).trim()]
     );
   }
 }
@@ -165,6 +167,23 @@ async function updateUserById(id, updates) {
   return mapUser(rows[0] || null);
 }
 
+// Sync isMember and membershiptype from User down to Candidate and JobPosting rows
+// Called after membership change. recommendation controller now reads consistent data reguardless of which table is hit first
+async function syncMembershipByUserId(userId, isMember, membershipType) {
+  await pool.query(
+    `UPDATE "Candidate"
+        SET ismember = $2, membershiptype = $3, updatedat = NOW()
+      WHERE userid = $1`,
+    [userId, isMember, membershipType]
+  );
+  await pool.query(
+    `UPDATE "JobPosting"
+        SET ismember = $2, membershiptype = $3, updatedat = NOW()
+      WHERE userid = $1`,
+    [userId, isMember, membershipType]
+  );
+}
+
 async function saveUsers(users) {
   for (const u of users) {
     const existing = await findUserById(u.id);
@@ -200,7 +219,11 @@ async function findCandidateByUserId(userId) {
 }
 
 async function insertCandidate(candidate) {
-  const { rows } = await pool.query(
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+  const { rows } = await client.query(
     `INSERT INTO "Candidate"
        (candidateid, userid, useremail, fullname, contactinformation, education, major,
         yearsofexperience, workexperience, preferredworkingmode, preferredlocation,
@@ -222,35 +245,55 @@ async function insertCandidate(candidate) {
     ]
   );
   await _upsertSkills('CandidateSkill', 'candidateid', candidate.id, candidate.skills);
+  await client.query('COMMIT');
   return mapCandidate(rows[0], candidate.skills || []);
+  // Error handling, I was getting a strang bug
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 async function updateCandidateById(id, updates) {
-  const { rows } = await pool.query(
-    `UPDATE "Candidate" SET
-       useremail=$2, fullname=$3, contactinformation=$4, education=$5, major=$6,
-       yearsofexperience=$7, workexperience=$8, preferredworkingmode=$9,
-       preferredlocation=$10, preferences=$11, resumefilename=$12, resumepath=$13,
-       coverletterfilename=$14, coverletterpath=$15, profileimagefilename=$16,
-       profileimagepath=$17, ismember=$18, membershiptype=$19, updatedat=NOW()
-     WHERE candidateid=$1
-     RETURNING *`,
-    [
-      id,
-      updates.userEmail, updates.fullName, updates.contactInformation,
-      updates.education, updates.major, updates.yearsOfExperience,
-      updates.workExperience, updates.preferredWorkingMode, updates.preferredLocation,
-      JSON.stringify(updates.preferences || []),
-      updates.resumeFileName, updates.resumePath,
-      updates.coverLetterFileName, updates.coverLetterPath,
-      updates.profileImageFileName, updates.profileImagePath,
-      updates.isMember, updates.membershipType,
-    ]
-  );
-  await _upsertSkills('CandidateSkill', 'candidateid', id, updates.skills);
-  return mapCandidate(rows[0], updates.skills || []);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+ 
+    const { rows } = await client.query(
+      `UPDATE "Candidate" SET
+         useremail=$2, fullname=$3, contactinformation=$4, education=$5, major=$6,
+         yearsofexperience=$7, workexperience=$8, preferredworkingmode=$9,
+         preferredlocation=$10, preferences=$11, resumefilename=$12, resumepath=$13,
+         coverletterfilename=$14, coverletterpath=$15, profileimagefilename=$16,
+         profileimagepath=$17, ismember=$18, membershiptype=$19, updatedat=NOW()
+       WHERE candidateid=$1
+       RETURNING *`,
+      [
+        id,
+        updates.userEmail, updates.fullName, updates.contactInformation,
+        updates.education, updates.major, updates.yearsOfExperience,
+        updates.workExperience, updates.preferredWorkingMode, updates.preferredLocation,
+        JSON.stringify(updates.preferences || []),
+        updates.resumeFileName, updates.resumePath,
+        updates.coverLetterFileName, updates.coverLetterPath,
+        updates.profileImageFileName, updates.profileImagePath,
+        updates.isMember, updates.membershipType,
+      ]
+    );
+ 
+    await _upsertSkills(client, 'CandidateSkill', 'candidateid', id, updates.skills);
+    await client.query('COMMIT');
+    return mapCandidate(rows[0], updates.skills || []);
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
 }
-
+ 
 async function saveCandidates(candidates) {
   for (const c of candidates) {
     const existing = await findCandidateById(c.id);
@@ -261,65 +304,89 @@ async function saveCandidates(candidates) {
     }
   }
 }
-
+ 
 // --- Jobs ---
-
+ 
 async function getJobs() {
   const { rows } = await pool.query('SELECT * FROM "JobPosting" ORDER BY createdat DESC');
   const skillMap = await _getSkillsMap('JobSkill', 'jobid', rows.map(r => r.jobid));
   return rows.map(r => mapJob(r, skillMap[r.jobid] || []));
 }
-
+ 
 async function findJobById(id) {
   const { rows } = await pool.query('SELECT * FROM "JobPosting" WHERE jobid = $1', [id]);
   if (!rows[0]) return null;
   const skillMap = await _getSkillsMap('JobSkill', 'jobid', [id]);
   return mapJob(rows[0], skillMap[id] || []);
 }
-
+ 
 async function insertJob(job) {
-  const { rows } = await pool.query(
-    `INSERT INTO "JobPosting"
-       (jobid, userid, employeremail, jobtitle, companyinformation, jobdescription,
-        requirededucationlevel, yearsofexperience, workmode, joblocation, jobtype,
-        salarymin, salarymax, ismember, membershiptype, createdat, updatedat)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
-     RETURNING *`,
-    [
-      job.id, job.userId, job.employerEmail, job.jobTitle, job.companyInformation,
-      job.jobDescription, job.requiredEducationLevel, job.yearsOfExperience,
-      job.workMode, job.jobLocation, job.jobType,
-      job.salaryMin, job.salaryMax,
-      job.isMember, job.membershipType,
-      job.createdAt, job.updatedAt,
-    ]
-  );
-  await _upsertSkills('JobSkill', 'jobid', job.id, job.requiredSkills);
-  return mapJob(rows[0], job.requiredSkills || []);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+ 
+    const { rows } = await client.query(
+      `INSERT INTO "JobPosting"
+         (jobid, userid, employeremail, jobtitle, companyinformation, jobdescription,
+          requirededucationlevel, yearsofexperience, workmode, joblocation, jobtype,
+          salarymin, salarymax, ismember, membershiptype, createdat, updatedat)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+       RETURNING *`,
+      [
+        job.id, job.userId, job.employerEmail, job.jobTitle, job.companyInformation,
+        job.jobDescription, job.requiredEducationLevel, job.yearsOfExperience,
+        job.workMode, job.jobLocation, job.jobType,
+        job.salaryMin, job.salaryMax,
+        job.isMember, job.membershipType,
+        job.createdAt, job.updatedAt,
+      ]
+    );
+ 
+    await _upsertSkills(client, 'JobSkill', 'jobid', job.id, job.requiredSkills);
+    await client.query('COMMIT');
+    return mapJob(rows[0], job.requiredSkills || []);
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
 }
-
+ 
 async function updateJobById(id, updates) {
-  const { rows } = await pool.query(
-    `UPDATE "JobPosting" SET
-       employeremail=$2, jobtitle=$3, companyinformation=$4, jobdescription=$5,
-       requirededucationlevel=$6, yearsofexperience=$7, workmode=$8, joblocation=$9,
-       jobtype=$10, salarymin=$11, salarymax=$12, ismember=$13, membershiptype=$14,
-       updatedat=NOW()
-     WHERE jobid=$1
-     RETURNING *`,
-    [
-      id,
-      updates.employerEmail, updates.jobTitle, updates.companyInformation,
-      updates.jobDescription, updates.requiredEducationLevel, updates.yearsOfExperience,
-      updates.workMode, updates.jobLocation, updates.jobType,
-      updates.salaryMin, updates.salaryMax,
-      updates.isMember, updates.membershipType,
-    ]
-  );
-  await _upsertSkills('JobSkill', 'jobid', id, updates.requiredSkills);
-  return mapJob(rows[0], updates.requiredSkills || []);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+ 
+    const { rows } = await client.query(
+      `UPDATE "JobPosting" SET
+         employeremail=$2, jobtitle=$3, companyinformation=$4, jobdescription=$5,
+         requirededucationlevel=$6, yearsofexperience=$7, workmode=$8, joblocation=$9,
+         jobtype=$10, salarymin=$11, salarymax=$12, ismember=$13, membershiptype=$14,
+         updatedat=NOW()
+       WHERE jobid=$1
+       RETURNING *`,
+      [
+        id,
+        updates.employerEmail, updates.jobTitle, updates.companyInformation,
+        updates.jobDescription, updates.requiredEducationLevel, updates.yearsOfExperience,
+        updates.workMode, updates.jobLocation, updates.jobType,
+        updates.salaryMin, updates.salaryMax,
+        updates.isMember, updates.membershipType,
+      ]
+    );
+ 
+    await _upsertSkills(client, 'JobSkill', 'jobid', id, updates.requiredSkills);
+    await client.query('COMMIT');
+    return mapJob(rows[0], updates.requiredSkills || []);
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
 }
-
+ 
 async function saveJobs(jobs) {
   for (const j of jobs) {
     const existing = await findJobById(j.id);
@@ -330,9 +397,9 @@ async function saveJobs(jobs) {
     }
   }
 }
-
+ 
 // --- Applications ---
-
+ 
 async function insertApplication(jobId, candidateId) {
   const { rows } = await pool.query(
     `INSERT INTO "Application" (jobid, candidateid) VALUES ($1, $2) RETURNING *`,
@@ -340,7 +407,7 @@ async function insertApplication(jobId, candidateId) {
   );
   return mapApplication(rows[0]);
 }
-
+ 
 async function getApplications({ jobId, candidateId } = {}) {
   let query = `
     SELECT a.*,
@@ -352,13 +419,13 @@ async function getApplications({ jobId, candidateId } = {}) {
     JOIN "Candidate" c ON c.candidateid = a.candidateid
     WHERE 1=1`;
   const values = [];
-  if (jobId) { values.push(jobId); query += ` AND a.jobid = $${values.length}`; }
+  if (jobId)       { values.push(jobId);       query += ` AND a.jobid = $${values.length}`; }
   if (candidateId) { values.push(candidateId); query += ` AND a.candidateid = $${values.length}`; }
   query += ' ORDER BY a.appliedat DESC';
   const { rows } = await pool.query(query, values);
   return rows.map(mapApplication);
 }
-
+ 
 async function findApplicationById(id) {
   const { rows } = await pool.query(
     `SELECT a.*,
@@ -373,7 +440,7 @@ async function findApplicationById(id) {
   );
   return mapApplication(rows[0] || null);
 }
-
+ 
 async function updateApplicationStatus(id, status) {
   const { rows } = await pool.query(
     `UPDATE "Application" SET status = $2 WHERE applicationid = $1 RETURNING *`,
@@ -381,7 +448,7 @@ async function updateApplicationStatus(id, status) {
   );
   return mapApplication(rows[0] || null);
 }
-
+ 
 module.exports = {
   generateId,
   // users
@@ -391,6 +458,7 @@ module.exports = {
   findUserByEmail,
   insertUser,
   updateUserById,
+  syncMembershipByUserId,
   // candidates
   getCandidates,
   saveCandidates,
