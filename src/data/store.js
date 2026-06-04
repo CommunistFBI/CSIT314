@@ -108,7 +108,7 @@ async function _getSkillsMap(table, idCol, ids) {
 }
 
 // Replace skills automatically within client transaction
-async function _upsertSkills(table, idCol, id, skills) {
+async function _upsertSkills(client, table, idCol, id, skills) {
   await client.query(`DELETE FROM "${table}" WHERE ${idCol} = $1`, [id]);
   for (const skill of (skills || [])) {
     await client.query(
@@ -244,7 +244,7 @@ async function insertCandidate(candidate) {
       candidate.createdAt, candidate.updatedAt,
     ]
   );
-  await _upsertSkills('CandidateSkill', 'candidateid', candidate.id, candidate.skills);
+  await _upsertSkills(client, 'CandidateSkill', 'candidateid', candidate.id, candidate.skills);
   await client.query('COMMIT');
   return mapCandidate(rows[0], candidate.skills || []);
   // Error handling, I was getting a strang bug
