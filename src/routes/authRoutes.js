@@ -7,6 +7,6 @@ router.get('/users', listUsers);
 router.get('/users/:id', getUserById);
 router.post('/register', register);
 router.post('/login', login);
-router.patch('/:id/membership', updateMembership);
+router.patch('/users/:id', updateMembership);
 
 module.exports = router;
